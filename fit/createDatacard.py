@@ -1,5 +1,5 @@
 import os,sys
-
+from numpy import array, float32 # spencer
 
 def fixJes(jesnp, jes_evts_noWeight):
     if jes_evts_noWeight <= 50:
@@ -66,17 +66,21 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
 
     # Background expectations
     sys.path.append('../inputs')
-    _temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], -1)
+    #_temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], -1)
+    _temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], 0) # spencer 
     expected_yield = _temp.expected_yield
-    _temp = __import__('inputs_bkg_'+obsName+'_'+year, globals(), locals(), ['fractionsBackground'], -1)
+    #_temp = __import__('inputs_bkg_'+obsName+'_'+year, globals(), locals(), ['fractionsBackground'], -1)
+    _temp = __import__('inputs_bkg_'+obsName+'_'+year, globals(), locals(), ['fractionsBackground'], 0) # spencer 
     fractionsBackground = _temp.fractionsBackground
     if jes:
         sys.path.append('../coefficients/JES')
         jesNames = ['Abs', 'Abs_year', 'BBEC1', 'BBEC1_year', 'EC2', 'EC2_year', 'FlavQCD', 'HF', 'HF_year', 'RelBal', 'RelSample_year']
         jesNames_datacard = [j.replace('year',year) for j in jesNames] # The name of the nuisance in the datacard should have the correspoding year
-        _temp = __import__('JESNP_'+obsName, globals(), locals(), ['JESNP'], -1)
+        #_temp = __import__('JESNP_'+obsName, globals(), locals(), ['JESNP'], -1)
+        _temp = __import__('JESNP_'+obsName, globals(), locals(), ['JESNP'], 0) # spencer
         jesnp = _temp.JESNP
-        _temp = __import__('JESNP_evts_'+obsName, globals(), locals(), ['evts_noWeight'], -1)
+        #_temp = __import__('JESNP_evts_'+obsName, globals(), locals(), ['evts_noWeight'], -1)
+        _temp = __import__('JESNP_evts_'+obsName, globals(), locals(), ['evts_noWeight'], 0) # spencer
         jes_evts_noWeight = _temp.evts_noWeight
         sys.path.remove('../coefficients/JES')
     sys.path.remove('../inputs')
@@ -101,6 +105,8 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
         lumi['2018'] = '1.023'
         lumi['2022'] = '1.014'
         lumi['2022EE'] = '1.014'
+        lumi['2023preBPix'] = '1.014'
+        lumi['2023postBPix'] = '1.014'
 
     # Lepton efficiency
     # Values taken from:
@@ -120,6 +126,11 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
     eff_mu['2022EE_2e2mu'] = '0.986/1.007'
     eff_mu['2022EE_4mu'] = '0.981/1.009'
 
+    eff_mu['2023preBPix_2e2mu'] = '0.986/1.008' #spencer
+    eff_mu['2023preBPix_4mu'] = '0.981/1.01' #spencer
+    eff_mu['2023postBPix_2e2mu'] = '0.986/1.008' # spencer
+    eff_mu['2023postBPix_4mu'] = '0.981/1.01' # spencer
+    
     eff_e = {}
     eff_e['2016_2e2mu'] = '0.934/1.062'
     eff_e['2016_4e'] = '0.891/1.093'
@@ -133,6 +144,12 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
     eff_e['2022_2e2mu'] = '0.927/1.069'
     eff_e['2022EE_4e'] =  '0.897/1.088'
     eff_e['2022EE_2e2mu'] = '0.938/1.059'
+
+    eff_e['2023preBPix_2e2mu'] = '0.927/1.069' # spencer
+    eff_e['2023preBPix_4e'] = '0.884/1.103' # spencer
+    eff_e['2023postBPix_2e2mu'] = '0.927/1.069' # spencer
+    eff_e['2023postBPix_4e'] = '0.884/1.103' # spencer
+    
 
     # ZX
     ZX = {}
@@ -152,6 +169,14 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
     ZX['2022EE_4e'] = '0.575/1.398'
     ZX['2022EE_4mu'] = '0.690/1.310'
 
+    ZX['2023preBPix_2e2mu'] = '0.724/1.263' # spencer
+    ZX['2023preBPix_4e'] = '0.575/1.398' # spencer
+    ZX['2023preBPix_4mu'] = '0.677/1.321' # spencer
+    ZX['2023postBPix_2e2mu'] = '0.724/1.263' # spencer
+    ZX['2023postBPix_4e'] = '0.575/1.398' # spencer
+    ZX['2023postBPix_4mu'] = '0.677/1.321' # spencer 
+    
+    
     # -------------------------------------------------------------------------------------------------
 
     file = open('../datacard/datacard_'+year+'/hzz4l_'+channel+'S_13TeV_xs_'+_obsName[obsName]+'_bin'+str(obsBin)+'_'+physicalModel+'.txt', 'w+')
@@ -205,6 +230,7 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
     if zzfloating:
         file.write('1 1 '+str(expected_yield[year,'ZX',channel])+'\n')
     else:
+        print(expected_yield[year,'qqzz',channel])
         file.write(str(expected_yield[year,'qqzz',channel])+' '+str(expected_yield[year,'ggzz',channel])+' '+str(expected_yield[year,'ZX',channel])+'\n')
     file.write('------------ \n')
 
@@ -258,12 +284,14 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
         if zzfloating:
             # lumi
             file.write('lumi_13TeV_2022 lnN ')
+            #file.write('lumi_13p6TeV_2022 lnN ') # spencer
             for i in range(nBins+2): # signals + out + fake
                 file.write(lumi['2022']+' ')
             file.write('- - -\n') # qqzz + ggzz + ZX
         else:
             # lumi
             file.write('lumi_13TeV_2022 lnN ')
+            #file.write('lumi_13p6TeV_2022 lnN ') # spencer
             for i in range(nBins+4): # All except ZX
                 file.write(lumi['2022']+' ')
             file.write('-\n') # ZX
@@ -271,16 +299,19 @@ def createDatacard(obsName, channel, nBins, obsBin, observableBins, physicalMode
         if zzfloating:
             # lumi
             file.write('lumi_13TeV_'+year+' lnN ')
+            #file.write('lumi_13p6TeV_2022 lnN ') # spencer
             for i in range(nBins+2): # signals + out + fake
                 file.write(lumi[year]+' ')
             file.write('- - -\n') # qqzz + ggzz + ZX
         else:
             # lumi
             file.write('lumi_13TeV_'+year+' lnN ')
+            #file.write('lumi_13p6TeV_2022 lnN ') # spencer
             for i in range(nBins+4): # All except ZX
                 file.write(lumi[year]+' ')
             file.write('-\n') # ZX
 
+            
     # Lepton efficiency
     if channel == '4mu' or channel == '2e2mu':
         file.write('CMS_eff_m lnN ')
@@ -380,13 +411,15 @@ def createDatacard_ggH(obsName, channel, nBins, obsBin, observableBins, physical
     xHName = 'xH_' + _obsName[obsName]
     # Background expectations in [105,160]
     sys.path.append('../inputs')
-    _temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], -1)
+    #_temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], -1)
+    _temp = __import__('inputs_bkgTemplate_'+obsName, globals(), locals(), ['expected_yield'], 0) # spencer
     expected_yield = _temp.expected_yield
     if jes:
         sys.path.append('../coefficients/JES')
         jesNames = ['Abs', 'Abs_year', 'BBEC1', 'BBEC1_year', 'EC2', 'EC2_year', 'FlavQCD', 'HF', 'HF_year', 'RelBal', 'RelSample_year']
         jesNames_datacard = [j.replace('year',year) for j in jesNames] # The name of the nuisance in the datacard should have the correspoding year
-        _temp = __import__('JESNP_'+obsName+'_'+str(year), globals(), locals(), ['JESNP'], -1)
+        #_temp = __import__('JESNP_'+obsName+'_'+str(year), globals(), locals(), ['JESNP'], -1)
+        _temp = __import__('JESNP_'+obsName+'_'+str(year), globals(), locals(), ['JESNP'], 0) # spencer
         jesnp = _temp.JESNP
         sys.path.remove('../coefficients/JES')
         # print(jesnp)
@@ -414,7 +447,12 @@ def createDatacard_ggH(obsName, channel, nBins, obsBin, observableBins, physical
         lumi['2016'] = '1.026'
         lumi['2017'] = '1.025'
         lumi['2018'] = '1.023'
+        lumi['2022'] = '1.014'
+        lumi['2022EE'] = '1.014'
+        lumi['2023preBPix'] = '1.014'
+        lumi['2023postBPix'] = '1.014'
 
+        
     # Lepton efficiency
     # Values taken from:
     # https://indico.cern.ch/event/1125278/contributions/4723319/attachments/2420259/4142589/LepSyst.pdf
@@ -428,6 +466,11 @@ def createDatacard_ggH(obsName, channel, nBins, obsBin, observableBins, physical
     eff_mu['2018_2e2mu'] = '0.986/1.006'
     eff_mu['2018_4mu'] = '0.981/1.008'
 
+    eff_mu['2023preBPix_2e2mu'] = '0.986/1.008' #spencer
+    eff_mu['2023preBPix_4mu'] = '0.981/1.01' #spencer
+    eff_mu['2023postBPix_2e2mu'] = '0.986/1.008' # spencer
+    eff_mu['2023postBPix_4mu'] = '0.981/1.01' # spencer
+    
     eff_e = {}
     eff_e['2016_2e2mu'] = '0.934/1.062'
     eff_e['2016_4e'] = '0.891/1.093'
@@ -436,6 +479,11 @@ def createDatacard_ggH(obsName, channel, nBins, obsBin, observableBins, physical
     eff_e['2018_2e2mu'] = '0.95/1.052'
     eff_e['2018_4e'] = '0.905/1.077'
 
+    eff_e['2023preBPix_2e2mu'] = '0.927/1.069' # spencer
+    eff_e['2023preBPix_4e'] = '0.884/1.103' # spencer
+    eff_e['2023postBPix_2e2mu'] = '0.927/1.069' # spencer
+    eff_e['2023postBPix_4e'] = '0.884/1.103' # spencer
+    
     # ZX
     # Values taken from:
     # https://indico.cern.ch/event/1109103/contributions/4799990/attachments/2415431/4133107/HIG21009_HZZreport.pdf
@@ -452,7 +500,13 @@ def createDatacard_ggH(obsName, channel, nBins, obsBin, observableBins, physical
     ZX['2018_4e'] = '0.650486/1.35893'
     ZX['2018_4mu'] = '0.69554/1.30465'
 
-
+    ZX['2023preBPix_2e2mu'] = '0.724/1.263' # spencer
+    ZX['2023preBPix_4e'] = '0.575/1.398' # spencer
+    ZX['2023preBPix_4mu'] = '0.677/1.321' # spencer
+    ZX['2023postBPix_2e2mu'] = '0.724/1.263' # spencer
+    ZX['2023postBPix_4e'] = '0.575/1.398' # spencer
+    ZX['2023postBPix_4mu'] = '0.677/1.321' # spencer
+    
     # -------------------------------------------------------------------------------------------------
 
     file = open('../datacard/datacard_'+year+'/hzz4l_GGH_'+channel+'S_13TeV_xs_'+_obsName[obsName]+'_bin'+str(obsBin)+'_'+physicalModel+'.txt', 'w+')
