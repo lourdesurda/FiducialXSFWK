@@ -157,7 +157,9 @@ def dataframes(year, year_mc):
     elif year_mc == '2023preBPix':
         lumi = 17.794
     elif year_mc == '2023postBPix':
-        lumi = 9.451+109.08
+        lumi = 9.451
+    elif year_mc == '2024':
+        lumi = 109.08
     
     d_df_bkg = {}
     d_bkg = prepareTrees(year_mc)
@@ -232,6 +234,8 @@ def openFR(year):
     
     if (year == "2022" or year == "2022EE" or year == "2023preBPix" or year == "2023postBPix"):
         fnameFR = "/eos/user/l/lurda/CMS/HZZ/XS_analysis/250303/FAKERATES/%s/FakeRates_SS_%s.root" % (year, year)
+    elif (year == '2024'):
+        fnameFR = "/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/HIG-25-015/RunIII_byZ1Z2/251015/FAKERATES/%s/FakeRates_SS_%s.root" % (year, year)
     else:
         raise ValueError(f"ERROR: Unsupported year")
     #fnameFR = "/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/RunIII/FRfiles/FakeRates_SS_%s.root" %year
@@ -300,10 +304,17 @@ def comb(year):
         ])
     elif year == "2023postBPix":
         cb_SS = np.array([
-            0.781, # 4e
+            0.795, # 4e
             1.025, # 4mu
             1.074, # 2e2mu
-            1.138, # 2mu2e
+            1.078, # 2mu2e
+        ])
+    elif year == "2024":
+        cb_SS = np.array([
+            0.782, # 4e
+            0.838, # 4mu
+            0.845, # 2e2mu
+            0.747, # 2mu2e
         ])
     return cb_SS
 
@@ -358,6 +369,13 @@ def ratio(year):
             1.078,   # 2e2mu
             1.025,  # 2mu2e
             ])
+    elif year == "2024":
+        fs_ROS_SS = np.array([
+            1.001,   # 4e
+            1.047,  # 4mu
+            1.068,   # 2e2mu
+            1.025,  # 2mu2e
+            ])
     return fs_ROS_SS
 
 # Calculate yield for Z+X (data in CRZLL control region are scaled in signal region through yields)
@@ -388,6 +406,7 @@ def doZX(year, year_mc):
     if (year=="2022EE"): data = '/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/HIG-25-015/RunIII_byZ1Z2/062025/2022_Data/Data_eraEFG_postEE_SKIMMED.root'
     if (year=="2023preBPix"): data = '/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/HIG-25-015/RunIII_byZ1Z2/062025/2023_Data/Data_eraC_preBPix_SKIMMED.root'
     if (year=="2023postBPix"): data = '/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/HIG-25-015/RunIII_byZ1Z2/062025/2023_Data/Data_eraD_postBPix_SKIMMED.root'
+    if (year=="2024"): data = '/eos/cms/store/group/phys_higgs/cmshzz4l/cjlst/HIG-25-015/RunIII_byZ1Z2/251015/Data2024/ZZ4lAnalysis_SKIMMED.root'
     #if (year=="2023preBPix"): data = '/eos/user/m/mmanoni/HZZ_prod_300425_angles/Data/2023/Data_eraC_preBPix_SKIMMED.root'
     #if (year=="2023postBPix"): data = '/eos/user/m/mmanoni/HZZ_prod_300425_angles/Data/2023/Data_eraD_postBPix_SKIMMED.root'
     #if (year=="2022"): data = '/eos/user/m/mmanoni/HZZ_prod_300425_angles/Data/2022/Data_eraCD_preEE_SKIMMED.root'
@@ -613,19 +632,6 @@ eos_path_FR = path['eos_path_FR']
 eos_path = path['eos_path']
 key = 'ZZTree/candTree'
 
-if (opt.YEAR == '2016'):
-    years_MC = ['2016pre', '2016post']
-    years = [2016]
-if (opt.YEAR == '2017'):
-    years_MC = ['2017']
-    years = [2017]
-if (opt.YEAR == '2018'):
-    years_MC = ['2018']
-    years = [2018]
-if (opt.YEAR == 'Full'):
-    years_MC = ['2016pre', '2016post', '2017', '2018']
-    years = [2016,2017,2018]
-
 if (opt.YEAR == 'Run3'):
     years_MC = ['2022', '2022EE', '2023preBPix', '2023postBPix']
     years = ["2022", "2022EE", "2023preBPix", "2023postBPix"]
@@ -649,6 +655,10 @@ if (opt.YEAR == '2022full'):
 if (opt.YEAR == '2023full'):
     years_MC = ['2023preBPix', '2023postBPix']
     years = ["2023preBPix", "2023postBPix"]
+
+if (opt.YEAR == '2024'):
+    years_MC = ['2024']
+    years = ["2024"]
 
 obs_bins, doubleDiff = binning(opt.OBSNAME)
 
@@ -712,6 +722,9 @@ if (opt.YEAR == '2022full'):
 if (opt.YEAR == '2023full'):
     d_bkg['2023preBPix'] = d_bkg_tmp['2023preBPix']
     d_bkg['2023postBPix'] = d_bkg_tmp['2023postBPix']
+if (opt.YEAR == '2024'):
+    d_bkg['2024'] = d_bkg_tmp['2024']
+    d_bkg['2024'] = d_bkg_tmp['2024']
     
 # Generate pandas for ZX
 branches_ZX = ['ZZMass', 'Z1Flav', 'Z2Flav', 'LepLepId', 'LepEta', 'LepPt', 'Z2Mass', 'Z1Mass', 'ZZPt', 'ZZy', 'pTj1', 'pTj2', 'Nj', 'absdetajj', 'mjj', 'dphijj', 'pTHj', 'pTHjj', 'mHj', 'costheta1', 'costheta2', 'Phi', 'Phi1', 'costhetastar'] #, 'TBMax', 'TCMax'] #
